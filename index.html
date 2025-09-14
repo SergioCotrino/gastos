@@ -1,0 +1,1472 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Gastos</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700;800&family=SF+Pro+Text:wght@300;400;500;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-tertiary: #94a3b8;
+            --accent-primary: #3b82f6;
+            --accent-secondary: #8b5cf6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --border-light: #e2e8f0;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-primary: #0f172a;
+                --bg-secondary: #1e293b;
+                --bg-card: #1e293b;
+                --text-primary: #f1f5f9;
+                --text-secondary: #cbd5e1;
+                --text-tertiary: #64748b;
+                --border-light: #334155;
+            }
+        }
+
+        body {
+            font-family: 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            font-size: 16px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .container {
+            max-width: 430px;
+            margin: 0 auto;
+            background: var(--bg-secondary);
+            min-height: 100vh;
+            position: relative;
+            border-left: 1px solid var(--border-light);
+            border-right: 1px solid var(--border-light);
+        }
+
+        .header {
+            background: var(--bg-card);
+            padding: 60px 24px 32px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid var(--border-light);
+            backdrop-filter: blur(20px);
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .header {
+                background: rgba(30, 41, 59, 0.8);
+            }
+        }
+
+        .header h1 {
+            font-family: 'SF Pro Display', sans-serif;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+            letter-spacing: -0.5px;
+        }
+
+        .header-subtitle {
+            font-size: 15px;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+            font-weight: 400;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .month-selector {
+            flex: 1;
+            background: var(--bg-card);
+            border: 2px solid var(--border-light);
+            color: var(--text-primary);
+            padding: 14px 16px;
+            font-size: 15px;
+            font-weight: 500;
+            border-radius: var(--radius-md);
+            outline: none;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: inherit;
+        }
+
+        .month-selector:focus {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .add-btn {
+            background: var(--accent-primary);
+            color: white;
+            border: none;
+            padding: 14px 20px;
+            border-radius: var(--radius-md);
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: inherit;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .add-btn:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .add-btn:active {
+            transform: translateY(0);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .summary-card {
+            margin: 24px;
+            background: var(--bg-card);
+            border-radius: var(--radius-xl);
+            padding: 32px;
+            text-align: center;
+            border: 1px solid var(--border-light);
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .summary-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+        }
+
+        .total-amount {
+            font-family: 'SF Pro Display', sans-serif;
+            font-size: 48px;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            letter-spacing: -1px;
+            line-height: 1;
+        }
+
+        .total-amount.negative {
+            color: var(--error);
+        }
+
+        .total-amount.positive {
+            color: var(--success);
+        }
+
+        .total-label {
+            font-size: 15px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .categories-section {
+            padding: 0 24px 24px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-family: 'SF Pro Display', sans-serif;
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+            letter-spacing: -0.3px;
+        }
+
+        .category-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            margin-bottom: 16px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .category-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--accent-primary);
+        }
+
+        .category-card:active {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .category-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .category-info {
+            flex: 1;
+        }
+
+        .category-name {
+            font-family: 'SF Pro Display', sans-serif;
+            font-size: 17px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+            letter-spacing: -0.2px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .category-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            margin-right: 12px;
+        }
+
+        .category-card.type-0 .category-icon { background: linear-gradient(135deg, #fee2e2, #fca5a5); }
+        .category-card.type-1 .category-icon { background: linear-gradient(135deg, #d1fae5, #6ee7b7); }
+        .category-card.type-2 .category-icon { background: linear-gradient(135deg, #dbeafe, #93c5fd); }
+        .category-card.type-3 .category-icon { background: linear-gradient(135deg, #fed7aa, #fdba74); }
+        .category-card.type-4 .category-icon { background: linear-gradient(135deg, #fde2e8, #fbb6ce); }
+        .category-card.type-5 .category-icon { background: linear-gradient(135deg, #e9d5ff, #c4b5fd); }
+
+        .category-balance {
+            font-family: 'SF Pro Display', sans-serif;
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            line-height: 1;
+        }
+
+        .category-balance.positive { color: var(--success); }
+        .category-balance.negative { color: var(--error); }
+
+        .category-details {
+            display: flex;
+            gap: 24px;
+            font-size: 14px;
+        }
+
+        .category-stat {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .stat-label {
+            color: var(--text-tertiary);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 12px;
+        }
+
+        .stat-value {
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-family: 'SF Pro Display', sans-serif;
+        }
+
+        .delete-category {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error);
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+        }
+
+        .category-card:hover .delete-category {
+            opacity: 1;
+        }
+
+        .delete-category:hover {
+            background: rgba(239, 68, 68, 0.2);
+            transform: scale(1.1);
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            animation: fadeIn 0.3s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: var(--bg-card);
+            border-radius: var(--radius-xl);
+            width: 90%;
+            max-width: 400px;
+            margin: 20px;
+            border: 1px solid var(--border-light);
+            box-shadow: var(--shadow-xl);
+            transform: translateY(20px) scale(0.95);
+            animation: slideIn 0.3s ease forwards;
+        }
+
+        @keyframes slideIn {
+            to { 
+                transform: translateY(0) scale(1); 
+            }
+        }
+
+        .modal-header {
+            padding: 24px 24px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-family: 'SF Pro Display', sans-serif;
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+            letter-spacing: -0.3px;
+        }
+
+        .close-btn {
+            background: var(--bg-primary);
+            color: var(--text-secondary);
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-btn:hover {
+            background: var(--border-light);
+            transform: scale(1.1);
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            letter-spacing: -0.1px;
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            background: var(--bg-primary);
+            border: 2px solid var(--border-light);
+            color: var(--text-primary);
+            padding: 14px 16px;
+            font-size: 15px;
+            font-weight: 500;
+            border-radius: var(--radius-md);
+            outline: none;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: inherit;
+        }
+
+        .form-input:focus, .form-select:focus {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .form-input::placeholder {
+            color: var(--text-tertiary);
+        }
+
+        .primary-btn {
+            width: 100%;
+            background: var(--accent-primary);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: var(--radius-md);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: inherit;
+            margin-top: 8px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .primary-btn:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .primary-btn:active {
+            transform: translateY(0);
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* Detail View */
+        .detail-view {
+            display: none;
+            background: var(--bg-primary);
+            min-height: 100vh;
+        }
+
+        .detail-header {
+            background: var(--bg-card);
+            padding: 60px 24px 24px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid var(--border-light);
+            backdrop-filter: blur(20px);
+            background: rgba(255, 255, 255, 0.8);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .detail-header {
+                background: rgba(30, 41, 59, 0.8);
+            }
+        }
+
+        .back-button {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-light);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .back-button:hover {
+            background: var(--border-light);
+            transform: scale(1.1);
+        }
+
+        .detail-title {
+            font-family: 'SF Pro Display', sans-serif;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: -0.5px;
+            flex: 1;
+        }
+
+        .detail-content {
+            padding: 24px;
+        }
+
+        .summary-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-light);
+            font-size: 15px;
+        }
+
+        .summary-row:last-child {
+            border-bottom: none;
+            padding-top: 16px;
+            margin-top: 8px;
+            border-top: 2px solid var(--border-light);
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .summary-label {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .summary-value {
+            font-family: 'SF Pro Display', sans-serif;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .summary-value.positive { color: var(--success); }
+        .summary-value.negative { color: var(--error); }
+
+        .input-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .section-title-detail {
+            font-family: 'SF Pro Display', sans-serif;
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            letter-spacing: -0.2px;
+        }
+
+        .success-btn {
+            background: var(--success);
+        }
+
+        .success-btn:hover {
+            background: #059669;
+        }
+
+        .expense-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            margin-bottom: 12px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .expense-item:hover {
+            border-color: var(--accent-primary);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
+        }
+
+        .expense-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .expense-info {
+            flex: 1;
+        }
+
+        .expense-description {
+            font-family: 'SF Pro Display', sans-serif;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+            letter-spacing: -0.1px;
+        }
+
+        .expense-date {
+            font-size: 13px;
+            color: var(--text-tertiary);
+            font-weight: 500;
+        }
+
+        .expense-amount {
+            font-family: 'SF Pro Display', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--error);
+            letter-spacing: -0.3px;
+        }
+
+        .expense-delete {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error);
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+        }
+
+        .expense-item:hover .expense-delete {
+            opacity: 1;
+        }
+
+        .expense-delete:hover {
+            background: rgba(239, 68, 68, 0.2);
+            transform: scale(1.1);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 48px 24px;
+            color: var(--text-tertiary);
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-title {
+            font-family: 'SF Pro Display', sans-serif;
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .empty-subtitle {
+            font-size: 14px;
+            color: var(--text-tertiary);
+        }
+
+        /* Week Selector */
+        .week-controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 24px;
+            background: var(--bg-card);
+            padding: 20px;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-light);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .week-selector {
+            flex: 1;
+            background: var(--bg-primary);
+            border: 2px solid var(--border-light);
+            color: var(--text-primary);
+            padding: 12px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: var(--radius-md);
+            outline: none;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: inherit;
+        }
+
+        .week-selector:focus {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .add-week-btn {
+            background: var(--accent-secondary);
+            color: white;
+            border: none;
+            padding: 12px 16px;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: inherit;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .add-week-btn:hover {
+            background: #7c3aed;
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .week-indicator {
+            font-size: 13px;
+            color: var(--text-tertiary);
+            text-align: center;
+            margin-bottom: 16px;
+            font-weight: 500;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-card);
+            color: var(--text-primary);
+            padding: 16px 24px;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 2000;
+            border: 1px solid var(--border-light);
+            box-shadow: var(--shadow-lg);
+            opacity: 0;
+            transform: translateX(-50%) translateY(-20px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            max-width: 90%;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .toast.success {
+            border-left: 4px solid var(--success);
+        }
+
+        .toast.error {
+            border-left: 4px solid var(--error);
+        }
+
+        .toast.info {
+            border-left: 4px solid var(--accent-primary);
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .container {
+                max-width: 100%;
+                border-left: none;
+                border-right: none;
+            }
+
+            .header {
+                padding: 50px 20px 28px;
+            }
+
+            .summary-card {
+                margin: 20px;
+                padding: 28px;
+            }
+
+            .categories-section {
+                padding: 0 20px 20px;
+            }
+
+            .detail-content {
+                padding: 20px;
+            }
+
+            .total-amount {
+                font-size: 40px;
+            }
+
+            .week-controls {
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .week-selector {
+                width: 100%;
+            }
+        }
+
+        /* Focus states */
+        *:focus-visible {
+            outline: 2px solid var(--accent-primary);
+            outline-offset: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Modal para crear categoría -->
+        <div id="create-category-modal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title">Nueva Categoría</h2>
+                    <button class="close-btn" onclick="closeCreateCategoryModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label" for="newCategoryName">Nombre de la categoría</label>
+                        <input type="text" class="form-input" id="newCategoryName" placeholder="Ej: Entretenimiento, Comida..." maxlength="20">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="newCategoryColor">Esquema de color</label>
+                        <select class="form-select" id="newCategoryColor">
+                            <option value="0">🔴 Rojo suave</option>
+                            <option value="1">🟢 Verde natural</option>
+                            <option value="2">🔵 Azul sereno</option>
+                            <option value="3">🟠 Naranja cálido</option>
+                            <option value="4">🌸 Rosa delicado</option>
+                            <option value="5">🟣 Púrpura elegante</option>
+                        </select>
+                    </div>
+                    <button class="primary-btn" onclick="createCategory()">Crear categoría</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vista Principal -->
+        <div id="main-view">
+            <div class="header">
+                <h1>Control de Gastos</h1>
+                
+                <div class="header-controls">
+                    <select class="month-selector" id="monthSelector">
+                        <!-- Se llena dinámicamente -->
+                    </select>
+                    <button class="add-btn" onclick="openCreateCategoryModal()">
+                        <span>+</span>
+                        Nueva
+                    </button>
+                </div>
+            </div>
+
+            <div class="summary-card">
+                <div class="total-amount" id="totalAmount">$0</div>
+                <div class="total-label">Saldo disponible</div>
+            </div>
+
+            <div class="categories-section">
+                <div class="section-header">
+                    <div class="section-title">Categorías</div>
+                </div>
+                <div id="categories-container">
+                    <!-- Se llenan dinámicamente -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Vista de Detalle -->
+        <div id="detail-view" class="detail-view">
+            <div class="detail-header">
+                <button class="back-button" onclick="closeDetail()">←</button>
+                <div class="detail-title" id="detail-title">Categoría</div>
+            </div>
+
+            <div class="detail-content">
+                <div class="summary-section" id="balance-config">
+                    <div class="section-title-detail">Resumen del mes</div>
+                    <div class="summary-row">
+                        <span class="summary-label">Presupuesto</span>
+                        <span class="summary-value">$<span id="current-budget">0</span></span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Gastado</span>
+                        <span class="summary-value">$<span id="current-spent">0</span></span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Disponible</span>
+                        <span class="summary-value positive">$<span id="current-balance">0</span></span>
+                    </div>
+                </div>
+
+                <div class="input-section">
+                    <div class="section-title-detail">Presupuesto mensual</div>
+                    <div class="form-group">
+                        <label class="form-label" for="budgetInput">Establece tu presupuesto mensual</label>
+                        <input type="number" class="form-input" id="budgetInput" placeholder="0.00" step="0.01">
+                        <button class="primary-btn" onclick="setBudget()">Actualizar presupuesto</button>
+                    </div>
+                </div>
+
+                <div class="week-controls">
+                    <select class="week-selector" id="weekSelector">
+                        <!-- Se llena dinámicamente -->
+                    </select>
+                    <button class="add-week-btn" onclick="addNewWeek()">
+                        <span>+</span>
+                        Nueva Semana
+                    </button>
+                </div>
+
+                <div class="input-section">
+                    <div class="section-title-detail">Nuevo gasto</div>
+                    <div class="week-indicator" id="week-indicator">Semana 1</div>
+                    <div class="form-group">
+                        <label class="form-label" for="expenseDescription">Descripción</label>
+                        <input type="text" class="form-input" id="expenseDescription" placeholder="¿En qué gastaste?">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="expenseAmount">Monto</label>
+                        <input type="number" class="form-input" id="expenseAmount" placeholder="0.00" step="0.01">
+                        <button class="primary-btn success-btn" onclick="addExpense()">Agregar gasto</button>
+                    </div>
+                </div>
+
+                <div class="input-section">
+                    <div class="section-title-detail">Gastos de la semana</div>
+                    <div id="expenses-container">
+                        <!-- Se llenan dinámicamente -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentCategory = '';
+        let currentMonth = '';
+        let currentWeek = 'week_1';
+        let categories = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeApp();
+        });
+
+        function initializeApp() {
+            loadCategories();
+            populateMonthSelector();
+            currentMonth = getCurrentMonth();
+            document.getElementById('monthSelector').value = currentMonth;
+            updateMainView();
+        }
+
+        function loadCategories() {
+            const savedCategories = localStorage.getItem('expense_categories');
+            if (savedCategories) {
+                categories = JSON.parse(savedCategories);
+            } else {
+                categories = [
+                    { id: 'fijos', name: 'Gastos Fijos', colorType: 0 },
+                    { id: 'generales', name: 'Gastos Variables', colorType: 1 },
+                    { id: 'personal', name: 'Gastos Personales', colorType: 2 }
+                ];
+                saveCategories();
+            }
+        }
+
+        function saveCategories() {
+            localStorage.setItem('expense_categories', JSON.stringify(categories));
+        }
+
+        function openCreateCategoryModal() {
+            document.getElementById('create-category-modal').style.display = 'flex';
+        }
+
+        function closeCreateCategoryModal() {
+            document.getElementById('create-category-modal').style.display = 'none';
+            document.getElementById('newCategoryName').value = '';
+            document.getElementById('newCategoryColor').value = '0';
+        }
+
+        function createCategory() {
+            const nameInput = document.getElementById('newCategoryName');
+            const colorSelect = document.getElementById('newCategoryColor');
+            
+            const name = nameInput.value.trim();
+            const colorType = parseInt(colorSelect.value);
+            
+            if (!name) {
+                showToast('Por favor ingresa un nombre para la categoría', 'error');
+                return;
+            }
+            
+            if (name.length > 20) {
+                showToast('El nombre debe tener máximo 20 caracteres', 'error');
+                return;
+            }
+            
+            if (categories.some(cat => cat.name.toLowerCase() === name.toLowerCase())) {
+                showToast('Ya existe una categoría con ese nombre', 'error');
+                return;
+            }
+            
+            const newCategory = {
+                id: 'cat_' + Date.now(),
+                name: name,
+                colorType: colorType
+            };
+            
+            categories.push(newCategory);
+            saveCategories();
+            updateMainView();
+            closeCreateCategoryModal();
+            showToast('Categoría creada exitosamente', 'success');
+        }
+
+        function deleteCategory(categoryId) {
+            const category = categories.find(cat => cat.id === categoryId);
+            if (!category) return;
+            
+            const confirmation = confirm(`¿Eliminar "${category.name}"?\n\nEsto borrará todos los datos de esta categoría.`);
+            
+            if (confirmation) {
+                const keysToDelete = [];
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && key.startsWith(`gastos_${categoryId}_`)) {
+                        keysToDelete.push(key);
+                    }
+                }
+                keysToDelete.forEach(key => localStorage.removeItem(key));
+                
+                categories = categories.filter(cat => cat.id !== categoryId);
+                saveCategories();
+                updateMainView();
+                showToast(`Categoría eliminada`, 'info');
+            }
+        }
+
+        function getCurrentMonth() {
+            const now = new Date();
+            return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+        }
+
+        function populateMonthSelector() {
+            const selector = document.getElementById('monthSelector');
+            const currentDate = new Date();
+            
+            selector.innerHTML = '';
+            
+            for (let i = -6; i <= 5; i++) {
+                const date = new Date(currentDate.getFullYear(), currentDate.getMonth() + i, 1);
+                const value = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                const text = date.toLocaleDateString('es-ES', { year: 'numeric', month: 'long' });
+                
+                const option = document.createElement('option');
+                option.value = value;
+                option.textContent = text.charAt(0).toUpperCase() + text.slice(1);
+                selector.appendChild(option);
+            }
+
+            selector.addEventListener('change', (e) => {
+                currentMonth = e.target.value;
+                updateMainView();
+            });
+        }
+
+        function populateWeekSelector() {
+            const selector = document.getElementById('weekSelector');
+            const data = getMonthData(currentCategory, currentMonth);
+            
+            selector.innerHTML = '';
+            
+            const weekKeys = Object.keys(data.weeks || {});
+            if (weekKeys.length === 0) {
+                data.weeks = { 'week_1': { expenses: [] } };
+                saveMonthData(currentCategory, currentMonth, data);
+                weekKeys.push('week_1');
+            }
+
+            weekKeys.forEach(weekKey => {
+                const weekNumber = weekKey.replace('week_', '');
+                const option = document.createElement('option');
+                option.value = weekKey;
+                option.textContent = `Semana ${weekNumber}`;
+                selector.appendChild(option);
+            });
+
+            selector.addEventListener('change', (e) => {
+                currentWeek = e.target.value;
+                updateDetailView();
+            });
+
+            if (weekKeys.includes(currentWeek)) {
+                selector.value = currentWeek;
+            } else {
+                currentWeek = weekKeys[0];
+                selector.value = currentWeek;
+            }
+        }
+
+        function addNewWeek() {
+            const data = getMonthData(currentCategory, currentMonth);
+            if (!data.weeks) data.weeks = {};
+            
+            const existingWeeks = Object.keys(data.weeks);
+            const weekNumbers = existingWeeks.map(w => parseInt(w.replace('week_', ''))).sort((a, b) => a - b);
+            const nextWeekNumber = weekNumbers.length > 0 ? Math.max(...weekNumbers) + 1 : 1;
+            const newWeekKey = `week_${nextWeekNumber}`;
+            
+            data.weeks[newWeekKey] = { expenses: [] };
+            saveMonthData(currentCategory, currentMonth, data);
+            
+            populateWeekSelector();
+            currentWeek = newWeekKey;
+            document.getElementById('weekSelector').value = currentWeek;
+            updateDetailView();
+            
+            showToast(`Semana ${nextWeekNumber} creada`, 'success');
+        }
+
+        function renderCategories() {
+            const container = document.getElementById('categories-container');
+            
+            if (categories.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📂</div>
+                        <div class="empty-title">No hay categorías</div>
+                        <div class="empty-subtitle">Crea tu primera categoría para empezar</div>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = categories.map(category => {
+                const data = getMonthData(category.id, currentMonth);
+                const totalSpent = getAllWeeksSpent(data.weeks || {});
+                const balance = data.budget - totalSpent;
+                
+                return `
+                    <div class="category-card type-${category.colorType}" onclick="openCategory('${category.id}')">
+                        <button class="delete-category" onclick="event.stopPropagation(); deleteCategory('${category.id}')" title="Eliminar">×</button>
+                        <div class="category-header">
+                            <div class="category-info">
+                                <div class="category-name">
+                                    <div class="category-icon">💼</div>
+                                    ${category.name}
+                                </div>
+                            </div>
+                            <div class="category-balance ${balance >= 0 ? 'positive' : 'negative'}">$${balance.toFixed(2)}</div>
+                        </div>
+                        <div class="category-details">
+                            <div class="category-stat">
+                                <div class="stat-label">Presupuesto</div>
+                                <div class="stat-value">$${data.budget.toFixed(2)}</div>
+                            </div>
+                            <div class="category-stat">
+                                <div class="stat-label">Gastado</div>
+                                <div class="stat-value">$${totalSpent.toFixed(2)}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function getAllWeeksSpent(weeks) {
+            return Object.values(weeks).reduce((total, week) => {
+                return total + (week.expenses || []).reduce((sum, expense) => sum + expense.amount, 0);
+            }, 0);
+        }
+
+        function getStorageKey(category, month) {
+            return `gastos_${category}_${month}`;
+        }
+
+        function getMonthData(category, month) {
+            const key = getStorageKey(category, month);
+            const data = localStorage.getItem(key);
+            const parsedData = data ? JSON.parse(data) : { budget: 0, weeks: {} };
+            
+            if (parsedData.expenses && !parsedData.weeks) {
+                parsedData.weeks = {
+                    'week_1': {
+                        expenses: parsedData.expenses || []
+                    }
+                };
+                delete parsedData.expenses;
+                saveMonthData(category, month, parsedData);
+            }
+            
+            return parsedData;
+        }
+
+        function saveMonthData(category, month, data) {
+            const key = getStorageKey(category, month);
+            localStorage.setItem(key, JSON.stringify(data));
+        }
+
+        function updateMainView() {
+            renderCategories();
+            
+            let totalBalance = 0;
+            categories.forEach(category => {
+                const data = getMonthData(category.id, currentMonth);
+                const totalSpent = getAllWeeksSpent(data.weeks || {});
+                const balance = data.budget - totalSpent;
+                totalBalance += balance;
+            });
+
+            const totalElement = document.getElementById('totalAmount');
+            totalElement.textContent = `$${totalBalance.toFixed(2)}`;
+            totalElement.className = totalBalance >= 0 ? 'total-amount positive' : 'total-amount negative';
+        }
+
+        function openCategory(categoryId) {
+            currentCategory = categoryId;
+            const category = categories.find(cat => cat.id === categoryId);
+            if (!category) return;
+            
+            document.getElementById('detail-title').textContent = category.name;
+            document.getElementById('main-view').style.display = 'none';
+            document.getElementById('detail-view').style.display = 'block';
+            
+            populateWeekSelector();
+            updateDetailView();
+        }
+
+        function closeDetail() {
+            document.getElementById('detail-view').style.display = 'none';
+            document.getElementById('main-view').style.display = 'block';
+            updateMainView();
+            
+            document.getElementById('budgetInput').value = '';
+            document.getElementById('expenseDescription').value = '';
+            document.getElementById('expenseAmount').value = '';
+        }
+
+        function updateDetailView() {
+            const data = getMonthData(currentCategory, currentMonth);
+            const totalSpent = getAllWeeksSpent(data.weeks || {});
+            const balance = data.budget - totalSpent;
+
+            document.getElementById('current-budget').textContent = data.budget.toFixed(2);
+            document.getElementById('current-spent').textContent = totalSpent.toFixed(2);
+            document.getElementById('current-balance').textContent = Math.abs(balance).toFixed(2);
+            
+            const balanceElement = document.getElementById('current-balance');
+            balanceElement.parentElement.className = balance >= 0 ? 'summary-value positive' : 'summary-value negative';
+
+            const weekNumber = currentWeek.replace('week_', '');
+            document.getElementById('week-indicator').textContent = `Semana ${weekNumber}`;
+
+            const weekData = data.weeks?.[currentWeek] || { expenses: [] };
+            updateExpensesList(weekData.expenses);
+        }
+
+        function updateExpensesList(expenses) {
+            const container = document.getElementById('expenses-container');
+            
+            if (expenses.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">💸</div>
+                        <div class="empty-title">Sin gastos</div>
+                        <div class="empty-subtitle">Agrega tu primer gasto de la semana</div>
+                    </div>
+                `;
+                return;
+            }
+
+            const sortedExpenses = [...expenses].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            container.innerHTML = sortedExpenses.map((expense, index) => {
+                const originalIndex = expenses.findIndex(e => 
+                    e.description === expense.description && 
+                    e.amount === expense.amount && 
+                    e.date === expense.date
+                );
+                
+                return `
+                <div class="expense-item">
+                    <button class="expense-delete" onclick="confirmDeleteExpense(${originalIndex}, '${expense.description}', ${expense.amount})">×</button>
+                    <div class="expense-header">
+                        <div class="expense-info">
+                            <div class="expense-description">${expense.description}</div>
+                            <div class="expense-date">
+                                ${new Date(expense.date).toLocaleDateString('es-ES', {
+                                    day: '2-digit',
+                                    month: '2-digit',
+                                    year: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                })}
+                            </div>
+                        </div>
+                        <div class="expense-amount">-$${expense.amount.toFixed(2)}</div>
+                    </div>
+                </div>
+            `;
+            }).join('');
+        }
+
+        function setBudget() {
+            const budgetInput = document.getElementById('budgetInput');
+            const amount = parseFloat(budgetInput.value);
+            
+            if (isNaN(amount) || amount < 0) {
+                showToast('Por favor ingresa un monto válido', 'error');
+                budgetInput.focus();
+                return;
+            }
+
+            const data = getMonthData(currentCategory, currentMonth);
+            data.budget = amount;
+            saveMonthData(currentCategory, currentMonth, data);
+            
+            budgetInput.value = '';
+            updateDetailView();
+            showToast('Presupuesto mensual actualizado', 'success');
+        }
+
+        function addExpense() {
+            const descriptionInput = document.getElementById('expenseDescription');
+            const amountInput = document.getElementById('expenseAmount');
+            
+            const description = descriptionInput.value.trim();
+            const amount = parseFloat(amountInput.value);
+            
+            if (!description) {
+                showToast('Describe en qué gastaste', 'error');
+                descriptionInput.focus();
+                return;
+            }
+            
+            if (isNaN(amount) || amount <= 0) {
+                showToast('Ingresa un monto válido', 'error');
+                amountInput.focus();
+                return;
+            }
+
+            const data = getMonthData(currentCategory, currentMonth);
+            if (!data.weeks) data.weeks = {};
+            if (!data.weeks[currentWeek]) data.weeks[currentWeek] = { expenses: [] };
+            
+            const expense = {
+                description,
+                amount,
+                date: new Date().toISOString()
+            };
+            
+            data.weeks[currentWeek].expenses.push(expense);
+            saveMonthData(currentCategory, currentMonth, data);
+            
+            descriptionInput.value = '';
+            amountInput.value = '';
+            
+            updateDetailView();
+            showToast(`Gasto agregado: $${amount.toFixed(2)}`, 'success');
+        }
+
+        function confirmDeleteExpense(index, description, amount) {
+            const confirmation = confirm(`¿Eliminar este gasto?\n\n"${description}"\n$${amount.toFixed(2)}`);
+            
+            if (confirmation) {
+                deleteExpense(index);
+            }
+        }
+
+        function deleteExpense(index) {
+            const data = getMonthData(currentCategory, currentMonth);
+            
+            if (data.weeks?.[currentWeek]?.expenses) {
+                data.weeks[currentWeek].expenses.splice(index, 1);
+                saveMonthData(currentCategory, currentMonth, data);
+                updateDetailView();
+                showToast('Gasto eliminado', 'info');
+            }
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => toast.classList.add('show'), 10);
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.parentNode.removeChild(toast);
+                    }
+                }, 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
